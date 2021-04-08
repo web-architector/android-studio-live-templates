@@ -1,0 +1,79 @@
+# Шаблоны для ValueObject
+  
+  
+| Name                       | Expression                   | Default value                                       | Skip if defined |
+|----------------------------|------------------------------|-----------------------------------------------------|-----------------|
+| `NAME`                     |                              | `capitalize(camelCase(fileNameWithoutExtension()))` |                 |
+| `fileNameWithoutExtension` | `fileNameWithoutExtension()` | `""`                                                | `x`             |
+
+  
+---
+
+`valueObjectSnippet`
+```dart
+import 'package:dartz/dartz.dart';
+
+
+/// Creates a ValueObject from ValueObject class template
+class $NAME$ extends ValueObject<$TYPE$> {
+  /// ValueFailure создавать через freezed
+  
+  @override
+  final Either<ValueFailure<$TYPE$>, $TYPE$> value;
+  
+  factory  $NAME$ ($TYPE$ input) {
+    assert(input != null);
+    return $NAME$._($END$);
+  }
+
+  const $NAME$._(this.value);
+}
+
+```
+
+`valueObjectSuper`
+```dart
+
+abstract class IValidatable {
+  bool isValid();
+}
+
+/// This abstract class will extend specific value objects across multiple features.
+/// https://resocoder.com/2020/03/13/flutter-firebase-ddd-course-2-authentication-value-objects/
+@immutable
+abstract class ValueObject<T> implements IValidatable {
+
+  const ValueObject();
+
+/// ValueFailure создавать через freezed
+  Either<ValueFailure<T>, T> get value;
+
+  /// Throws [UnexpectedValueError] containing the [ValueFailure]
+  /// https://youtu.be/plz5NRNWiVU?t=1230
+  /// id = identity - same as writing (right) => right
+  T getOrCrash() => value.fold((f) => throw UnexpectedValueError(f), id);
+
+  T getOrElse(T dflt) => value.getOrElse(() => dflt);
+
+  Either<ValueFailure<dynamic>, Unit> get failureOrUnit => value.fold(
+        (l) => left(l),
+        (r) => right(unit),
+      );
+
+  @override
+  bool isValid() => value.isRight();
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+    return o is ValueObject<T> && o.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => 'Value($value)';
+}
+```
+
