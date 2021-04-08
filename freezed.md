@@ -12,13 +12,14 @@
 `freezed`
 ```dart
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 
 part '$fileNameWithoutExtension$.freezed.dart';
 
 @freezed
-abstract class $NAME$ with _$$$NAME$ {
-  const factory $NAME$({
-      @required int id,
+abstract class $NAME$<$T$> with _$$$NAME$<$T$> {
+  const factory $NAME$.enterNameHere({
+      @required $T$ id,
       $END$
   }) = _$NAME$;
 }
