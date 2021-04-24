@@ -483,11 +483,15 @@ class _$NAME$State extends State<$NAME$> with SingleTickerProviderStateMixin, Wi
 ```
 ---
 
-`stfulWithStateScope`
+`stfulWithStateScope (для вложенных елочкой виджетов)`
 ```dart
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 
+
+/// StatefulWidget позволяет управлять жизненным циклом виджета
+/// InheritedWidget обеспечивает поиск в контексте за О(1), хотя StatefulWidget тоже позволяет искать в контексте на
+/// за O(N), чем дальше в контексте потомок, тем дольше
 @immutable
 class $NAME$ extends StatefulWidget {
   final Widget child;
@@ -518,6 +522,12 @@ class $NAME$ extends StatefulWidget {
 
 class _$NAME$State extends State<$NAME$> {
 
+  /// Здесь добавляем поля, которые необходимо пробрасывать дальше по дереву
+  /// final variable = 42;
+  /// final String ultimateQuestion = 'Ultimate question of Universe';
+  /// 
+  
+
   @override
   void initState() {
     super.initState();
@@ -533,14 +543,20 @@ class _$NAME$State extends State<$NAME$> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Изменилась конфигурация InheritedWidget'ов
+    // Изменилась конфигурация InheritedWidget'ов предков
     // Также вызывается после initState, но до build'а
+    // Если bloc получаешь из контекста, а не создаешь в initState (а получать  его надо из контекста,
+    //  так как для его создания, зачастую, потребуются внешние зависимости), то диспозить его надо 
+    // не только в диспоз, но и тут - в didChangeDependencies:
+    // _bloc?.close;
   }
   
   @override
   void dispose() {
     // Перманетное удаление стейта из дерева
-    super.dispose();
+    // Если  создаешь блок в initState - то и диспозить  надо только в диспоз
+    _bloc.close();
+    super.dispose(); // super идет последним
   }
 
   @override
@@ -580,6 +596,8 @@ class _$NAME$Scope extends InheritedWidget {
   static _$NAME$Scope of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_$NAME$Scope>();
 
+  /// здесь пропиши условие, при котором InheritedWidget уведомит своих подписчиков в их didChangeDependencies о
+  /// том, что что-то поменялось
   @override
   bool updateShouldNotify(_$NAME$Scope oldWidget) =>
       !identical(state, oldWidget.state)
